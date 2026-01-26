@@ -1,137 +1,215 @@
-# Margin Leakage Analysis: Where Does Profitability Disappear?
+# Análisis de Fugas de Margen: Dónde Desaparece la Rentabilidad
 
-## The Real Problem
+## El Problema Real
 
-You ever look at a retail operation and see: "Our products have 75% margin" but the actual profit is half that? That gap isn't an accounting mystery. It's leakage. Discounts that seemed small add up. Shipping costs more than expected. Some product categories kill margins silently.
-This project investigates where exactly that leakage happens—not with guesses, but with actual numbers. I looked at a real retailer's data and asked: if we're losing 30% of our potential margin, which 5 decisions are eating it? And what would change if we fixed the top 3?
-The point isn't just analysis. It's showing how to think about profitability like someone who runs the business, not just analyzes spreadsheets.
+Mirás una operación retail y ves: "Nuestros productos tienen 75% de margen" pero la ganancia real es la mitad. Esa brecha no es un misterio contable. Es fuga.
+
+Los descuentos que parecen pequeños se suman. El envío cuesta más de lo previsto. Algunas categorías de productos matan márgenes en silencio. Pero la mayoría de las empresas nunca lo cuantifican.
+
+Este análisis investiga dónde exactamente se pierde esa rentabilidad—no con suposiciones, sino con números reales. La pregunta central es simple: si estamos perdiendo el 30% del margen potencial, ¿cuáles son las 5 decisiones que se lo comen? Y ¿qué cambiaría si arreglamos las 3 principales?
+
+El punto no es solo analizar datos. Es pensar como alguien que gestiona un negocio: ¿qué decisión tomo con esta información? ¿Cuánto dinero se recupera? ¿Qué pierdo en el camino?
 
 ---
 
-## What I actually looked for
+## La Pregunta de Negocio
 
-**The core questions:**
+Antes de cualquier SQL o visualización, necesitamos responder esto:
 
-1. **Where is the money going?** Break down the gap between what we should make and what we actually make. Assign a dollar amount to each leak.
-2. **Are discounts worth it?** If we discount 15%, do we actually sell 15% more volume? Or are we just giving away margin to customers who'd buy anyway?
-3. **Is faster shipping worth the cost?** Same-Day shipping sounds premium, but does it make us money or just cost more?
-4. **Which customer types are actually profitable?** Some segments might look good by volume but destroy margin once you factor in discounts and logistics.
-5. **What's worth changing?** If we fixed the biggest leak, what would we gain? What would we lose?
+1. ¿Dónde está el dinero? Desglosá la brecha entre lo que deberíamos ganar y lo que realmente ganamos. Asignale un monto en pesos a cada fuga.
 
-## How I Measured It
+2. ¿Vale la pena descontar? Si descuentas 15%, ¿realmente vendés 15% más volumen? ¿O solo le regalás margen a clientes que hubieran comprado igual?
 
-**The Math**
-**What we should make** (if we sold everything at list price)**:**
--Take list price, subtract what it costs to make it, divide by list price
--This is theoretical margin
+3. ¿El envío rápido justifica su costo? Suena premium, pero ¿nos hace ganar dinero o solo nos cuesta más?
 
-**What we actually make:**
--Take actual profit, divide by actual sales
--This is realized margin
+4. ¿Qué segmento es realmente rentable? Algunos se ven bien por volumen, pero destruyen margen una vez que contabilizás descuentos y logística.
 
-**The gap** = leakage. Now break it down:
-**1. Discounting leakage**
--Add up all the discounts we gave. How much did we leave on the table?
--If we discount 20% but only get 3% more volume, that's bad math
+5. ¿Qué vale la pena cambiar? Si arreglamos la fuga más grande, ¿qué ganamos? ¿Qué perdemos?
 
-**2. Shipping leakage (as a proxy)**
--Compare profit margins for Same-Day vs Standard shipping
--Important note: We can't prove Same-Day causes lower margins. Premium customers might just self-select Same-Day. But we can see the correlation.
+---
 
-**3. Product mix leakage**
--Some categories have high volume but negative margins
--Some have great margins but low volume
--The mix you actually sell might destroy profitability
+## Cómo Lo Medí
 
-**4. Customer segment leakage**
--Do some customer types (Consumer, Corporate, Home Office) have systematically lower margins after accounting for discounts?
--Are we subsidizing unprofitable segments?
+### La Matemática
 
-**5. Everything else**
--Returned items, pricing errors, operational waste—stuff that doesn't fit neatly above
+Margen Teórico (si vendiéramos todo a precio de lista):
+- (Precio de Lista - Costo) / Precio de Lista
 
-## The Investigation
-Questions I'll Answer:
+Margen Realizado (lo que realmente pasó):
+- Ganancia Real / Ventas Reales
 
-**1. What's the leakage breakdown?**
--In dollars and percentage, how much does each factor cost us?
--If discounting costs us $500k, that matters. If it's $50k, it's noise.
+La Brecha = Fuga. Ahora la desglosamos:
 
-**2. On discounts specifically:**
--Which product categories get heavy discounts?
--When we discount, do we actually move volume? How much?
--Are there categories where we could raise prices and still sell everything?
+1. Fuga por Descuentos
+- Cuánto dejamos sobre la mesa en descuentos
+- Si descuentas 20% pero solo subís 3% el volumen, esa es mala matemática
+- Señal: ¿descuentas más en categorías de alto volumen o bajo margen?
 
-**3. On shipping:**
--What's the actual profit margin for Same-Day vs Standard?
--Do Same-Day customers just happen to be higher-margin (selection effect) or does offering Same-Day actually hurt us?
+2. Fuga por Envío (como proxy de costo logístico)
+- Margen real para Envío Same-Day vs. Envío Estándar
+- Nota importante: No podemos probar que Same-Day causa márgenes más bajos. Clientes premium podrían elegir Same-Day. Pero podemos ver la correlación.
+- La pregunta es: ¿esa correlación es selección o causalidad?
 
-**4. On customer segments:**
--Which segment is most profitable after we account for all costs?
--Any segments that are outright unprofitable and should maybe be exited?
+3. Fuga por Mix de Productos
+- Algunas categorías tienen alto volumen pero márgenes negativos
+- Algunas tienen márgenes excelentes pero bajo volumen
+- El mix que realmente vendés podría destruir rentabilidad
 
-**5. On recovery:**
--If we reduced the biggest leak by 20%, what happens to profit?
--What would it cost us in volume?
--Is it worth it?
+4. Fuga por Segmento de Cliente
+- ¿Algunos tipos de cliente (Consumidor, Corporativo, Home Office) tienen márgenes sistemáticamente más bajos?
+- ¿Estamos subsidiando segmentos no rentables?
 
-## The Data
-Source: Superstore Sales dataset from Kaggle
+5. Todo lo Demás
+- Devoluciones, errores de precio, desperdicio operacional
+
+---
+
+## Análisis Planeado
+
+1. Desglose de Fugas (en progreso)
+En pesos y porcentajes, cuánto cuesta cada factor. Si los descuentos nos cuestan $500k, eso importa. Si cuestan $50k, es ruido.
+
+Qué se pretende:
+- Waterfall claro: margen teórico → margen real → desagregación de fugas
+- Asignación en pesos de cada fuente de fuga
+- Identificación de las 3 fugas más grandes
+
+2. En Descuentos Específicamente (pendiente)
+Qué se pretende:
+- Qué categorías reciben descuentos pesados
+- Correlación entre descuento y volumen (elasticidad)
+- Identificar categorías donde el descuento es irracional
+
+3. En Envío (pendiente)
+Qué se pretende:
+- Comparativa de margen real: Same-Day vs. Estándar
+- Diferenciar entre efecto de selección y causalidad
+- Conclusión sobre viabilidad de Same-Day como estrategia
+
+4. Por Segmento de Cliente (pendiente)
+Qué se pretende:
+- Rentabilidad real de cada segmento (Consumidor, Corporativo, Home Office)
+- Identificar qué segmentos subsidian a otros
+- Recomendación sobre segmentos críticos
+
+5. Escenarios de Recuperación (pendiente)
+Qué se pretende:
+- Modelado de "qué pasa si reducimos X fuga en 20%"
+- Cuánto volumen podríamos perder y seguir ganando
+- Trade-off analysis en números reales
+
+---
+
+## Los Datos
+
+Fuente: Dataset Superstore Sales de Kaggle
 Link: https://www.kaggle.com/datasets/rohitsahoo/sales-forecasting
-What's in it:
 
-~10,000 transactions from a US retailer
-Years 2014-2017
-4 regions, 3 customer segments, 17 product subcategories
-Fields include: sales amount, quantity, discount %, actual profit, shipping method, and more
+Qué contiene:
+- ~10,000 transacciones de un retailer de EE.UU.
+- Años 2014-2017
+- 4 regiones, 3 segmentos de cliente, 17 subcategorías de productos
+- Campos: monto de venta, cantidad, descuento %, ganancia real, método de envío, y más
 
-Important: This is a teaching dataset (Tableau public). The goal is to show the method, not make real business recommendations. But the method is real—this is how you'd investigate margin issues at any company.
+Nota: Este es un dataset educativo (Tableau Public). El objetivo es mostrar el método, no hacer recomendaciones de negocio reales. Pero el método es real—así investigarías problemas de margen en cualquier empresa.
 
-## What You'll Get (What I Built)
+---
 
-**1. Baseline Analysis**
--What does the margin look like overall? By category? By segment?
--Where do we see profit, and where do we see losses?
--Quick snapshot of which products/regions/customers are the problem children
+## Qué Voy a Entregar
 
-**2. The Leakage Breakdown**
--A clear waterfall: "Here's our theoretical margin, here's our real margin, here's what ate the difference"
--Heatmap showing leakage by category and segment
--Dollar impact of each leak source
+1. Análisis Base (pendiente)
+- EDA: exploración inicial, distribuciones, outliers
+- Snapshot de margen por categoría, región, segmento
+- Identificación de problem areas
 
-**3. Deep Dive on Discounts**
--Which categories get discounted most?
--Do discounts correlate with higher volume? (not proof of causation, but useful signal)
--Where is discounting clearly irrational?
+2. Desglose de Fugas en Números (pendiente)
+- Waterfall visual y tabla con desagregación
+- Heatmap: fuga por categoría x segmento
+- Impacto en pesos de cada fuente
 
-**4. Shipping Economics**
--Margin by shipping method
--Who picks what, and do they correlate with profitability?
--Honest assessment of what we can and can't conclude
+3. Deep Dive en Descuentos (pendiente)
+- Análisis de elasticidad precio-volumen
+- Categorías con descuento irracional
+- Recomendaciones por categoría
 
-**5. Customer Segment P&L**
--Profit per transaction by segment
--Average discount given to each segment
--How much volume each segment drives
+4. Economía del Envío (pendiente)
+- Comparativa Same-Day vs. Estándar
+- Análisis de selección vs. causalidad
+- Viabilidad de la estrategia actual
 
-**6. Scenarios**
--"What if we cut discounts by 5%? What profit would we gain?"
--"What volume would we have to lose to make that worth it?"
--Trade-off analysis in real dollars
+5. P&L por Segmento (pendiente)
+- Rentabilidad real por segmento de cliente
+- Subsidios implícitos entre segmentos
+- Recomendaciones de portafolio
 
+6. Escenarios y Trade-offs (pendiente)
+- Modelos de "qué pasa si"
+- Break-even analysis
+- Recomendaciones priorizadas
 
-## What This ISN'T
+---
 
-We're not claiming causation where we don't have it. If Same-Day shipping looks unprofitable, that might be because premium customers pick Same-Day, not because Same-Day actually costs us money. I'll flag that.
-We're not including costs we can't measure. No overhead allocation, no customer acquisition cost, no retained earnings analysis. This is transaction-level profit only.
-We're not predicting the future. This is history. We can't say "if you implement this, profit will go up 20%." We can say "in past data, this pattern cost us X."
-We're not accounting for loyalty. A cheap discount that brings back a repeat customer is worth more than the transaction shows. But we can't measure repeat rates here.
-We're not saying all unprofitable segments should die. Sometimes you keep a low-margin business unit for strategic reasons. But you should know you're doing it, and know the cost.
+## Qué NO Es Este Análisis
 
-## How I Built It
+- No afirmamos causalidad donde no la tenemos. Si Same-Day shipping se ve no rentable, podría ser porque clientes premium eligen Same-Day, no porque Same-Day nos cuesta dinero. Lo flagearé.
 
-SQL: Extracted data, calculated margins, built aggregations
-Python: Cleaned data, ran statistical analysis, built visualizations
-Tools: Pandas, NumPy, Matplotlib, Seaborn
-Version Control: Everything on GitHub so you can see the work
+- No incluimos costos que no podemos medir. Sin asignación de overhead, sin costo de adquisición de cliente, sin análisis de retenciones. Solo ganancia a nivel transacción.
 
+- No predecimos el futuro. Esto es historia. Podemos decir "en datos pasados, este patrón nos costó X", no "si implementas esto, la ganancia subirá 20%".
+
+- No contabilizamos lealtad. Un descuento barato que trae de vuelta a un cliente recurrente vale más que lo que muestra la transacción. Pero no podemos medir tasas de repetición acá.
+
+- No decimos que todos los segmentos no rentables deban desaparecer. A veces mantenés una unidad de bajo margen por razones estratégicas. Pero deberías saber que lo estás haciendo y cuánto te cuesta.
+
+---
+
+## Cómo Lo Construí
+
+- SQL: Extracción de datos, cálculo de márgenes, agregaciones
+- Python: Limpieza de datos, análisis estadístico, visualizaciones
+- Librerías: Pandas, NumPy, Matplotlib, Seaborn
+- Control de Versiones: Todo en GitHub para que veas el proceso
+
+---
+
+## Estructura del Repositorio
+
+├── data/
+│   └── superstore_sales.csv          # Dataset original
+├── notebooks/
+│   ├── 01_exploracion_inicial.ipynb  # EDA y limpieza
+│   ├── 02_calculo_margenes.ipynb     # Lógica de margen teórico vs realizado
+│   ├── 03_desglose_fugas.ipynb       # Análisis de cada tipo de fuga
+│   ├── 04_analisis_descuentos.ipynb  # Deep dive en descuentos
+│   └── 05_escenarios.ipynb           # Análisis de "qué pasa si"
+├── visualizaciones/
+│   ├── desglose_fugas.png
+│   ├── margen_por_categoria.png
+│   ├── elasticidad_descuentos.png
+│   └── p&l_por_segmento.png
+├── resultados/
+│   └── resumen_ejecutivo.csv         # Números clave en formato table-friendly
+└── README.md                          # Este archivo
+
+---
+
+## Cómo Usar Este Análisis
+
+1. Para aprender el método: Revisá los notebooks en orden. Cada uno construye sobre el anterior.
+
+2. Para replicarlo en tu negocio: Los notebooks están comentados. Cambiá los nombres de columnas, los umbrales de descuento, los segmentos—la lógica sigue siendo válida.
+
+3. Para presentar a stakeholders: Usá las visualizaciones y el resumen ejecutivo. Los números específicos importan menos que el insight: "Acá hay dinero recuperable si hacemos X."
+
+---
+
+## Próximos Pasos
+
+1. Extracción y Limpieza: Cargar datos, validar integridad, preparar para análisis
+2. Cálculo de Márgenes: Definir margen teórico vs. realizado, construir bases de datos
+3. Desglose de Fugas: Cuantificar cada fuente de fuga
+4. Análisis Profundo: Descuentos, envío, segmentos, escenarios
+5. Visualizaciones: Construir reportes ejecutivos
+6. Síntesis: Resumen de hallazgos y recomendaciones
+
+---
