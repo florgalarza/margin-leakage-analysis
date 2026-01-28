@@ -36,8 +36,8 @@ A retail business reports 12.5% overall profit margin, which sounds healthy. But
 - After 20%: systemic losses
 
 ### 3. Only One Product Can Absorb Aggressive Discounting
-- **Copiers:** $1,616 baseline profit → $243 even at 20%+ discount ✅
-- **Everything else:** Collapses beyond 15-20% discount ❌
+- **Copiers:** $1,616 baseline profit → $243 even at 20%+ discount 
+- **Everything else:** Collapses beyond 15-20% discount 
 
 ### 4. Discounting Strategy is Backwards by Geography
 - **Central Region:** 24% avg discount, $17.09/order profit
@@ -267,20 +267,6 @@ margin-leakage-analysis/
 
 *Full financial modeling in 04_scenario_modeling.ipynb*
 
----
-
-## Skills Demonstrated
-
-This project demonstrates:
-- ✅ **Analytical thinking** — Identifying non-obvious patterns (discounts DON'T move volume)
-- ✅ **Statistical rigor** — Using correlation, stratification, and proper interpretation
-- ✅ **Data engineering** — Cleaning, processing, and preparing data for analysis
-- ✅ **SQL proficiency** — Writing optimized, readable queries for validation
-- ✅ **Business acumen** — Understanding profit impact in dollars, not just numbers
-- ✅ **Communication** — Translating complex analysis into executive insights
-- ✅ **Visualization** — Creating dashboards that drive decisions
-
----
 
 ## Questions This Project Answers
 
@@ -298,17 +284,15 @@ This project demonstrates:
 ## How to Run This Analysis
 
 ### Prerequisites
-- Python 3.8+ (Pandas, NumPy, SciPy, Matplotlib, Seaborn)
-- SQL database (PostgreSQL, MySQL, or any SQL variant)
-- Tableau Public or Tableau Desktop (for dashboards)
-- Git (for version control)
+- Python 3.11+ (Pandas, NumPy, SciPy, Matplotlib, Seaborn)
+- SQL database 
+- Tableau Public or Tableau Desktop
 
 ### Steps
 1. Clone the repo: `git clone https://github.com/florgalarza/margin-leakage-analysis.git`
 2. Run Python notebooks in order (01 → 02 → 03 → 04)
 3. Use SQL queries to validate findings in your database
 4. Import data into Tableau and build dashboards
-5. Present findings to stakeholders using Tableau visualizations
 
 ### No Setup Required for Review
 All notebooks include complete outputs. You can view findings without running code.
@@ -317,7 +301,7 @@ All notebooks include complete outputs. You can view findings without running co
 
 ## Data Source
 
-**Dataset:** Superstore Sales (Tableau Public / Kaggle)
+**Dataset:** Superstore Sales (Kaggle) https://www.kaggle.com/datasets/vivek468/superstore-dataset-final
 - **Coverage:** 2014-2017, ~10,000 transactions
 - **Geography:** 4 US regions
 - **Segments:** Consumer, Corporate, Home Office
