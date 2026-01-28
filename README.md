@@ -1,215 +1,365 @@
-# Análisis de Fugas de Margen: Dónde Desaparece la Rentabilidad
+# Margin Leakage Analysis: End-to-End Data Analytics Project
 
-## El Problema Real
+## Project Overview
 
-Mirás una operación retail y ves: "Nuestros productos tienen 75% de margen" pero la ganancia real es la mitad. Esa brecha no es un misterio contable. Es fuga.
+This is a complete data analytics workflow demonstrating:
+- **Python** → Exploratory data analysis, hypothesis testing, quantifying business problems
+- **SQL** → Data validation, query optimization, and findings corroboration
+- **Tableau** → Executive storytelling and actionable dashboards
 
-Los descuentos que parecen pequeños se suman. El envío cuesta más de lo previsto. Algunas categorías de productos matan márgenes en silencio. Pero la mayoría de las empresas nunca lo cuantifican.
-
-Este análisis investiga dónde exactamente se pierde esa rentabilidad—no con suposiciones, sino con números reales. La pregunta central es simple: si estamos perdiendo el 30% del margen potencial, ¿cuáles son las 5 decisiones que se lo comen? Y ¿qué cambiaría si arreglamos las 3 principales?
-
-El punto no es solo analizar datos. Es pensar como alguien que gestiona un negocio: ¿qué decisión tomo con esta información? ¿Cuánto dinero se recupera? ¿Qué pierdo en el camino?
-
----
-
-## La Pregunta de Negocio
-
-Antes de cualquier SQL o visualización, necesitamos responder esto:
-
-1. ¿Dónde está el dinero? Desglosá la brecha entre lo que deberíamos ganar y lo que realmente ganamos. Asignale un monto en pesos a cada fuga.
-
-2. ¿Vale la pena descontar? Si descuentas 15%, ¿realmente vendés 15% más volumen? ¿O solo le regalás margen a clientes que hubieran comprado igual?
-
-3. ¿El envío rápido justifica su costo? Suena premium, pero ¿nos hace ganar dinero o solo nos cuesta más?
-
-4. ¿Qué segmento es realmente rentable? Algunos se ven bien por volumen, pero destruyen margen una vez que contabilizás descuentos y logística.
-
-5. ¿Qué vale la pena cambiar? Si arreglamos la fuga más grande, ¿qué ganamos? ¿Qué perdemos?
+The goal isn't just to analyze data—it's to understand business impact, validate findings rigorously, and communicate insights to decision-makers.
 
 ---
 
-## Cómo Lo Medí
+## The Business Problem
 
-### La Matemática
+A retail business reports 12.5% overall profit margin, which sounds healthy. But when we dig deeper:
+- 18.7% of orders are losing money
+- $566K in revenue is being lost to discounting
+- Discounting strategy is backwards by geography: weak regions get heavy discounts, strong regions get light discounts
 
-Margen Teórico (si vendiéramos todo a precio de lista):
-- (Precio de Lista - Costo) / Precio de Lista
-
-Margen Realizado (lo que realmente pasó):
-- Ganancia Real / Ventas Reales
-
-La Brecha = Fuga. Ahora la desglosamos:
-
-1. Fuga por Descuentos
-- Cuánto dejamos sobre la mesa en descuentos
-- Si descuentas 20% pero solo subís 3% el volumen, esa es mala matemática
-- Señal: ¿descuentas más en categorías de alto volumen o bajo margen?
-
-2. Fuga por Envío (como proxy de costo logístico)
-- Margen real para Envío Same-Day vs. Envío Estándar
-- Nota importante: No podemos probar que Same-Day causa márgenes más bajos. Clientes premium podrían elegir Same-Day. Pero podemos ver la correlación.
-- La pregunta es: ¿esa correlación es selección o causalidad?
-
-3. Fuga por Mix de Productos
-- Algunas categorías tienen alto volumen pero márgenes negativos
-- Algunas tienen márgenes excelentes pero bajo volumen
-- El mix que realmente vendés podría destruir rentabilidad
-
-4. Fuga por Segmento de Cliente
-- ¿Algunos tipos de cliente (Consumidor, Corporativo, Home Office) tienen márgenes sistemáticamente más bajos?
-- ¿Estamos subsidiando segmentos no rentables?
-
-5. Todo lo Demás
-- Devoluciones, errores de precio, desperdicio operacional
+**The core question:** Where is the profitability leaking, and what decisions would recover it?
 
 ---
 
-## Análisis Planeado
+## Key Findings
 
-1. Desglose de Fugas (en progreso)
-En pesos y porcentajes, cuánto cuesta cada factor. Si los descuentos nos cuestan $500k, eso importa. Si cuestan $50k, es ruido.
+### 1. Discounts Don't Drive Volume
+- **Correlation(Discount, Quantity) = 0.009** (essentially zero)
+- Discounting is NOT a volume lever in this business
+- We're giving away margin without gaining anything in return
 
-Qué se pretende:
-- Waterfall claro: margen teórico → margen real → desagregación de fugas
-- Asignación en pesos de cada fuente de fuga
-- Identificación de las 3 fugas más grandes
+### 2. Discounts Hurt Profit Significantly
+- **Correlation(Discount, Profit) = -0.219** (statistically significant)
+- There's a clear breaking point: **orders with 20%+ discount average -$46 loss**
+- Before 20%: still marginally profitable
+- After 20%: systemic losses
 
-2. En Descuentos Específicamente (pendiente)
-Qué se pretende:
-- Qué categorías reciben descuentos pesados
-- Correlación entre descuento y volumen (elasticidad)
-- Identificar categorías donde el descuento es irracional
+### 3. Only One Product Can Absorb Aggressive Discounting
+- **Copiers:** $1,616 baseline profit → $243 even at 20%+ discount ✅
+- **Everything else:** Collapses beyond 15-20% discount ❌
 
-3. En Envío (pendiente)
-Qué se pretende:
-- Comparativa de margen real: Same-Day vs. Estándar
-- Diferenciar entre efecto de selección y causalidad
-- Conclusión sobre viabilidad de Same-Day como estrategia
+### 4. Discounting Strategy is Backwards by Geography
+- **Central Region:** 24% avg discount, $17.09/order profit
+- **West Region:** 11% avg discount, $33.85/order profit
+- Central is being discounted MORE THAN DOUBLE while already being less profitable
 
-4. Por Segmento de Cliente (pendiente)
-Qué se pretende:
-- Rentabilidad real de cada segmento (Consumidor, Corporativo, Home Office)
-- Identificar qué segmentos subsidian a otros
-- Recomendación sobre segmentos críticos
-
-5. Escenarios de Recuperación (pendiente)
-Qué se pretende:
-- Modelado de "qué pasa si reducimos X fuga en 20%"
-- Cuánto volumen podríamos perder y seguir ganando
-- Trade-off analysis en números reales
+### 5. Damage is Concentrated
+- Binders, Machines, Tables account for 52% of all discount damage
+- Total: $298K out of $566K
 
 ---
 
-## Los Datos
+## Project Structure
 
-Fuente: Dataset Superstore Sales de Kaggle
-Link: https://www.kaggle.com/datasets/rohitsahoo/sales-forecasting
+### Phase 1: Python Analysis (Exploratory → Quantification)
 
-Qué contiene:
-- ~10,000 transacciones de un retailer de EE.UU.
-- Años 2014-2017
-- 4 regiones, 3 segmentos de cliente, 17 subcategorías de productos
-- Campos: monto de venta, cantidad, descuento %, ganancia real, método de envío, y más
+#### **01_exploratory_data_analysis.ipynb**
+**Question:** Where is the problem?
+- Establish baseline profitability (12.5% overall margin)
+- Identify that 18.7% of orders lose money
+- Verify that discounts correlate with losses
+- Find the worst 10 and best 10 orders (62-80% vs 0-4% discount)
+- **Output:** Clear evidence that discounting is the culprit
 
-Nota: Este es un dataset educativo (Tableau Public). El objetivo es mostrar el método, no hacer recomendaciones de negocio reales. Pero el método es real—así investigarías problemas de margen en cualquier empresa.
+#### **02_discount_analysis.ipynb**
+**Question:** How much damage is discounting doing?
+- Quantify that discounts don't drive volume (correlation 0.009)
+- Find the breaking point (20% discount)
+- Calculate total damage: $566K in revenue lost
+- Break down damage by sub-category, segment, and region
+- Discover geographic paradox (Central 24%, West 11%)
+- **Output:** Specific financial impact of discounting strategy
 
----
+#### **03_profit_analysis.ipynb**
+**Question:** Are these problems fixable, or are they structural?
+- Analyze baseline profitability (0% discount orders only)
+- Classify products by structural strength (Strong, Weak, Broken)
+- Compare 0% vs 20%+ discount profit for each product
+- Determine how much damage is discount-driven vs structural
+- **Output:** Identification of which problems are fixable
 
-## Qué Voy a Entregar
-
-1. Análisis Base (pendiente)
-- EDA: exploración inicial, distribuciones, outliers
-- Snapshot de margen por categoría, región, segmento
-- Identificación de problem areas
-
-2. Desglose de Fugas en Números (pendiente)
-- Waterfall visual y tabla con desagregación
-- Heatmap: fuga por categoría x segmento
-- Impacto en pesos de cada fuente
-
-3. Deep Dive en Descuentos (pendiente)
-- Análisis de elasticidad precio-volumen
-- Categorías con descuento irracional
-- Recomendaciones por categoría
-
-4. Economía del Envío (pendiente)
-- Comparativa Same-Day vs. Estándar
-- Análisis de selección vs. causalidad
-- Viabilidad de la estrategia actual
-
-5. P&L por Segmento (pendiente)
-- Rentabilidad real por segmento de cliente
-- Subsidios implícitos entre segmentos
-- Recomendaciones de portafolio
-
-6. Escenarios y Trade-offs (pendiente)
-- Modelos de "qué pasa si"
-- Break-even analysis
-- Recomendaciones priorizadas
+#### **04_scenario_modeling.ipynb**
+**Question:** What would change if we fixed the discount problem?
+- Model: "What if we eliminated discounts on Binders/Machines?"
+- Model: "What if we capped all discounts at 15%?"
+- Model: "What if Central region adopted West's discount strategy?"
+- Quantify profit recovery vs. volume risk
+- **Output:** Actionable recommendations with financial impact
 
 ---
 
-## Qué NO Es Este Análisis
+### Phase 2: SQL Validation (Confirm Python Findings)
 
-- No afirmamos causalidad donde no la tenemos. Si Same-Day shipping se ve no rentable, podría ser porque clientes premium eligen Same-Day, no porque Same-Day nos cuesta dinero. Lo flagearé.
+#### **queries/01_baseline_profitability.sql**
+Validates baseline profit by product/segment/region at 0% discount
+- Confirms Python findings on which products are structurally strong
+- Optimized query for large datasets
 
-- No incluimos costos que no podemos medir. Sin asignación de overhead, sin costo de adquisición de cliente, sin análisis de retenciones. Solo ganancia a nivel transacción.
+#### **queries/02_discount_impact.sql**
+Calculates profit delta between 0% and 20%+ discount
+- Validates the breaking point finding
+- Shows damage by sub-category
 
-- No predecimos el futuro. Esto es historia. Podemos decir "en datos pasados, este patrón nos costó X", no "si implementas esto, la ganancia subirá 20%".
+#### **queries/03_regional_analysis.sql**
+Compares discount strategy and profit by region
+- Confirms Central vs West paradox
+- Validates segment-level findings
 
-- No contabilizamos lealtad. Un descuento barato que trae de vuelta a un cliente recurrente vale más que lo que muestra la transacción. Pero no podemos medir tasas de repetición acá.
-
-- No decimos que todos los segmentos no rentables deban desaparecer. A veces mantenés una unidad de bajo margen por razones estratégicas. Pero deberías saber que lo estás haciendo y cuánto te cuesta.
-
----
-
-## Cómo Lo Construí
-
-- SQL: Extracción de datos, cálculo de márgenes, agregaciones
-- Python: Limpieza de datos, análisis estadístico, visualizaciones
-- Librerías: Pandas, NumPy, Matplotlib, Seaborn
-- Control de Versiones: Todo en GitHub para que veas el proceso
-
----
-
-## Estructura del Repositorio
-
-├── data/
-│   └── superstore_sales.csv          # Dataset original
-├── notebooks/
-│   ├── 01_exploracion_inicial.ipynb  # EDA y limpieza
-│   ├── 02_calculo_margenes.ipynb     # Lógica de margen teórico vs realizado
-│   ├── 03_desglose_fugas.ipynb       # Análisis de cada tipo de fuga
-│   ├── 04_analisis_descuentos.ipynb  # Deep dive en descuentos
-│   └── 05_escenarios.ipynb           # Análisis de "qué pasa si"
-├── visualizaciones/
-│   ├── desglose_fugas.png
-│   ├── margen_por_categoria.png
-│   ├── elasticidad_descuentos.png
-│   └── p&l_por_segmento.png
-├── resultados/
-│   └── resumen_ejecutivo.csv         # Números clave en formato table-friendly
-└── README.md                          # Este archivo
+#### **queries/04_scenario_validation.sql**
+Tests scenario assumptions (elasticity, profit recovery)
+- Validates scenario modeling from Python
+- Calculates actual profit impact of proposed changes
 
 ---
 
-## Cómo Usar Este Análisis
+### Phase 3: Tableau Visualization (Executive Communication)
 
-1. Para aprender el método: Revisá los notebooks en orden. Cada uno construye sobre el anterior.
+#### **tableau/margin_leakage_dashboard.twbx**
+Multi-sheet dashboard including:
 
-2. Para replicarlo en tu negocio: Los notebooks están comentados. Cambiá los nombres de columnas, los umbrales de descuento, los segmentos—la lógica sigue siendo válida.
+**Sheet 1: Executive Summary**
+- Key metrics: Total margin lost, breaking point, regional comparison
+- Color-coded: Green (strong), Yellow (warning), Red (critical)
 
-3. Para presentar a stakeholders: Usá las visualizaciones y el resumen ejecutivo. Los números específicos importan menos que el insight: "Acá hay dinero recuperable si hacemos X."
+**Sheet 2: Discount Impact**
+- Profit by discount level (barchart showing the cliff at 20%)
+- Top 10 products losing money to discounting
+
+**Sheet 3: Regional Deep Dive**
+- Central vs West comparison (discount % vs profit/order)
+- Why the paradox exists
+
+**Sheet 4: Product Performance**
+- Baseline (0%) vs Discounted (20%+)
+- Which products can survive discounting
+
+**Sheet 5: Scenario Outcomes**
+- What-if analysis results
+- Profit recovery potential vs volume risk
 
 ---
 
-## Próximos Pasos
+## Technology Stack
 
-1. Extracción y Limpieza: Cargar datos, validar integridad, preparar para análisis
-2. Cálculo de Márgenes: Definir margen teórico vs. realizado, construir bases de datos
-3. Desglose de Fugas: Cuantificar cada fuente de fuga
-4. Análisis Profundo: Descuentos, envío, segmentos, escenarios
-5. Visualizaciones: Construir reportes ejecutivos
-6. Síntesis: Resumen de hallazgos y recomendaciones
+| Tool | Purpose | Skills Demonstrated |
+|------|---------|---------------------|
+| **Python** (Pandas, NumPy, SciPy, Matplotlib) | Exploratory analysis, statistics, hypothesis testing | Data analysis, SQL fundamentals, problem-solving |
+| **SQL** | Data validation, query optimization, corroboration | Database querying, optimization, analytical thinking |
+| **Tableau** | Dashboard creation, executive storytelling | Data visualization, business communication |
+| **Git/GitHub** | Version control, project documentation | Collaboration, professional practices |
 
 ---
+
+## Key Methodology Decisions
+
+### What We Did Right
+- **Focused on correlation, not causation** — We show that discounts correlate with losses, but we're careful not to claim causality
+- **Avoided theoretical models** — No "what profit would be without discounts" calculations. We analyze real data only.
+- **Stratified by discount level** — This lets us see patterns at different discount tiers (0%, 5%, 10%, 20%, etc.)
+- **Quantified in dollars** — Not just percentages. The business cares about $566K, not "correlation = -0.219"
+
+### What We Didn't Do
+- **Price elasticity modeling** — Why? Because discounts don't move volume (correlation 0.009). No point modeling something that doesn't exist.
+- **Reverse-engineering costs** — We can't determine cost structure from profit data alone. This analysis works with what we know.
+
+---
+
+## How to Use This Project
+
+### For Learning
+1. Read **01_exploratory_data_analysis.ipynb** to understand the problem
+2. Study **02_discount_analysis.ipynb** to see quantification
+3. Review **03_profit_analysis.ipynb** for classification logic
+4. Check **04_scenario_modeling.ipynb** for decision-making
+
+### For Validation
+1. Run the **SQL queries** to confirm Python findings in a database
+2. Compare outputs — Python results should match SQL results
+3. This demonstrates rigor and understanding of both tools
+
+### For Presentation
+1. Use the **Tableau dashboard** for executive presentations
+2. Reference Python/SQL findings for deep dives
+3. Lead with business impact ($566K loss), support with data
+
+---
+
+## Key Findings Summary Table
+
+| Question | Finding | Implication |
+|----------|---------|------------|
+| Do discounts move volume? | No (correlation: 0.009) | Discounting isn't a volume strategy |
+| Do discounts hurt profit? | Yes (correlation: -0.219) | Discounting is destroying margin |
+| What's the breaking point? | 20% discount | Beyond 20%, orders lose money |
+| Which products can absorb discounts? | Only Copiers | Most products can't handle aggressive discounts |
+| Where is damage concentrated? | 3 products, 52% of losses | Problem is concentrated, fixable |
+| Is it discount or structure? | Mostly discount (fixable) | Can recover ~$227K by optimizing discounts |
+| Geographic strategy? | Backwards (24% vs 11%) | Weak regions get heavy discounts |
+
+---
+
+## Data Dictionary
+
+**Main Dataset:** `sample_superstore_processed.csv`
+
+| Column | Definition |
+|--------|-----------|
+| `Order ID` | Unique order identifier |
+| `Sales` | Revenue from order (after discount applied) |
+| `Quantity` | Units sold |
+| `Discount` | Discount percentage (0-0.80) |
+| `Profit` | Net profit/loss (includes all costs) |
+| `Category` | Product category (Furniture, Office Supplies, Technology) |
+| `Sub-Category` | Specific product type (Binders, Machines, Copiers, etc.) |
+| `Segment` | Customer segment (Consumer, Corporate, Home Office) |
+| `Region` | US Region (Central, East, South, West) |
+| `Ship Mode` | Shipping method |
+
+**Important Note:** Profit already includes all costs (COGS, shipping, operational). We cannot reverse-engineer individual cost components.
+
+---
+
+## Files Structure
+
+```
+margin-leakage-analysis/
+│
+├── 📊 PYTHON ANALYSIS
+│   ├── 01_exploratory_data_analysis.ipynb
+│   ├── 02_discount_analysis.ipynb
+│   ├── 03_profit_analysis.ipynb
+│   └── 04_scenario_modeling.ipynb
+│
+├── 🗄️ SQL VALIDATION
+│   ├── queries/01_baseline_profitability.sql
+│   ├── queries/02_discount_impact.sql
+│   ├── queries/03_regional_analysis.sql
+│   └── queries/04_scenario_validation.sql
+│
+├── 📈 TABLEAU VISUALIZATION
+│   ├── tableau/margin_leakage_dashboard.twbx
+│   └── tableau/executive_summary.pdf (screenshot)
+│
+├── 📋 DOCUMENTATION
+│   ├── README.md (this file)
+│   └── METHODOLOGY.md (detailed explanation)
+│
+└── 📊 DATA
+    ├── sample_superstore_processed.csv
+    └── data/raw_sample_superstore.csv (if applicable)
+```
+
+---
+
+## Business Impact & Recommendations
+
+### Financial Opportunity
+- **Current loss to discounting:** $566K annually
+- **Recoverable through discount optimization:** ~$227K (estimated)
+- **Risk:** Potential volume loss if discounts eliminated too aggressively
+
+### Recommended Actions
+1. **Eliminate discounts on Binders and Machines** — These are structural weak points
+2. **Cap all discounts at 15%** — Stay below the 20% breaking point
+3. **Align Central region strategy with West** — Reduce from 24% to 11% avg discount
+4. **Protect Copiers from discounting pressure** — Only product with strong baseline
+
+*Full financial modeling in 04_scenario_modeling.ipynb*
+
+---
+
+## Skills Demonstrated
+
+This project demonstrates:
+- ✅ **Analytical thinking** — Identifying non-obvious patterns (discounts DON'T move volume)
+- ✅ **Statistical rigor** — Using correlation, stratification, and proper interpretation
+- ✅ **Data engineering** — Cleaning, processing, and preparing data for analysis
+- ✅ **SQL proficiency** — Writing optimized, readable queries for validation
+- ✅ **Business acumen** — Understanding profit impact in dollars, not just numbers
+- ✅ **Communication** — Translating complex analysis into executive insights
+- ✅ **Visualization** — Creating dashboards that drive decisions
+
+---
+
+## Questions This Project Answers
+
+- ✅ How much money is being lost to discounting?
+- ✅ Do discounts actually move volume?
+- ✅ What's the breaking point for discount profitability?
+- ✅ Which products can absorb discounts, and which can't?
+- ✅ Is the problem uniform across the business, or concentrated?
+- ✅ Is it a discount problem or a structural problem?
+- ✅ How much could we recover by changing discount strategy?
+- ✅ Which region/product/segment should we focus on first?
+
+---
+
+## How to Run This Analysis
+
+### Prerequisites
+- Python 3.8+ (Pandas, NumPy, SciPy, Matplotlib, Seaborn)
+- SQL database (PostgreSQL, MySQL, or any SQL variant)
+- Tableau Public or Tableau Desktop (for dashboards)
+- Git (for version control)
+
+### Steps
+1. Clone the repo: `git clone https://github.com/florgalarza/margin-leakage-analysis.git`
+2. Run Python notebooks in order (01 → 02 → 03 → 04)
+3. Use SQL queries to validate findings in your database
+4. Import data into Tableau and build dashboards
+5. Present findings to stakeholders using Tableau visualizations
+
+### No Setup Required for Review
+All notebooks include complete outputs. You can view findings without running code.
+
+---
+
+## Data Source
+
+**Dataset:** Superstore Sales (Tableau Public / Kaggle)
+- **Coverage:** 2014-2017, ~10,000 transactions
+- **Geography:** 4 US regions
+- **Segments:** Consumer, Corporate, Home Office
+- **Products:** 17 sub-categories across 3 main categories
+- **Educational use:** Sample data for methodology demonstration
+
+---
+
+## What Makes This Project Different
+
+Most margin analysis stops at "we're losing money." This project asks **why** and **what would change.**
+
+- **Doesn't assume causation** — We show correlation, not fake theory
+- **Focuses on actionable insights** — Not just "here's a cool chart"
+- **Demonstrates full data workflow** — Python for discovery, SQL for validation, Tableau for communication
+- **Business-focused** — Every finding connects to a decision
+- **Quantified in dollars** — Not just percentages
+
+---
+
+## License
+
+MIT License - See LICENSE file for details
+
+---
+
+## Next Steps / Future Work
+
+- Add predictive modeling (forecasting impact of discount changes)
+- Incorporate customer segmentation (are certain customer types more elastic?)
+- A/B testing framework (test discount changes by region/product)
+- Real-time monitoring dashboard (track discount strategy effectiveness)
+
+---
+
+## Contact & Questions
+
+For questions about methodology, findings, or code:
+- Review the individual notebooks (detailed comments throughout)
+- Check the SQL queries (optimized and commented)
+- Refer to Tableau dashboard for visual explanation
+
+---
+
+**This project demonstrates that data analysis isn't just about finding patterns—it's about understanding business impact and making decisions with confidence.**
